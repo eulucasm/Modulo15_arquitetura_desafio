@@ -8,41 +8,48 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
+import com.lucao.theawesomemovieapp.databinding.FragmentMovieItemBinding
 import com.lucao.theawesomemovieapp.placeholder.PlaceholderContent
 
 class MovieFragment : Fragment(), MovieItemListener {
 
-    private var columnCount = 1
+    private lateinit var adapter: MyItemRecyclerViewAdapter
     private val viewModel by navGraphViewModels<MovieViewModel>(R.id.movie_graph) { defaultViewModelProviderFactory }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_movie_list, container, false)
-
-
-        if (view is RecyclerView) {
-            with(view) {
-                layoutManager = when {
-                    columnCount <= 1 -> LinearLayoutManager(context)
-                    else -> GridLayoutManager(context, columnCount)
-                }
-                adapter = MyItemRecyclerViewAdapter(PlaceholderContent.ITEMS, this@MovieFragment)
-            }
-        }
+        val binding = FragmentMovieItemBinding.inflate(inflater)
+        val view = binding.root as RecyclerView
+        adapter = MyItemRecyclerViewAdapter(this)
+        setupview(view)
+        initObservers()
         return view
     }
 
+    private fun setupview(view: RecyclerView) {
+        view.apply {
+            this.adapter = this@MovieFragment.adapter
+            this.layoutManager = LinearLayoutManager(context)
+        }
+    }
+
+    private fun initObservers() {
+        viewModel.movieListLiveData.observe(viewLifecycleOwner, Observer {
+            adapter.updateData(it)
+        })
+
+        viewModel.navigationToMovieDetailsLiveData.observe(viewLifecycleOwner, Observer {
+            val action = MovieFragmentDirections.actionMovieFragmentToMovieDetailFragment()
+            findNavController().navigate(action)
+        })
+    }
 
     override fun onItemSelected(position: Int) {
-        findNavController().navigate(R.id.MovieDetailFragment)
+        viewModel.onMovieSelected(position)
     }
 }

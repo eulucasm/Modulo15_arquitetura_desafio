@@ -5,17 +5,30 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.navigation.navGraphViewModels
 import com.lucao.theawesomemovieapp.R
+import com.lucao.theawesomemovieapp.databinding.FragmentMovieDetailsBinding
 
 
 class MovieDetailsFragment : Fragment() {
+
+    private val viewModel by navGraphViewModels<MovieViewModel>(R.id.movie_graph) { defaultViewModelProviderFactory }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        return inflater.inflate(R.layout.fragment_movie_details, container, false)
+        val binding: FragmentMovieDetailsBinding =
+            DataBindingUtil.inflate(
+                inflater,
+                R.layout.fragment_movie_details,
+                container,
+                false
+            )
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
+        return binding.root
     }
 
 }

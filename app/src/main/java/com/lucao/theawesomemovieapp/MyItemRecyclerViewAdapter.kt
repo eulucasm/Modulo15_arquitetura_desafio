@@ -13,12 +13,18 @@ interface MovieItemListener {
 }
 
 class MyItemRecyclerViewAdapter(
-    private val values: List<PlaceholderItem>,
     private val listener: MovieItemListener
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    private val values: MutableList<PlaceholderItem> = ArrayList()
 
+    fun updateData(hqList: List<PlaceholderItem>) {
+        values.clear()
+        values.addAll(hqList)
+        notifyDataSetChanged()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
             FragmentMovieItemBinding.inflate(
                 LayoutInflater.from(parent.context),
@@ -26,13 +32,11 @@ class MyItemRecyclerViewAdapter(
                 false
             )
         )
-
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
-        holder.idView.text = item.id
-        holder.contentView.text = item.content
+        holder.bindItem(item)
 
         holder.view.setOnClickListener {
             listener.onItemSelected(position)
@@ -41,14 +45,12 @@ class MyItemRecyclerViewAdapter(
 
     override fun getItemCount(): Int = values.size
 
-    inner class ViewHolder(binding: FragmentMovieItemBinding) : RecyclerView.ViewHolder(binding.root) {
-
-        val view: View = binding.root
-        val idView: TextView = binding.itemNumber
-        val contentView: TextView = binding.content
-
-        override fun toString(): String {
-            return super.toString() + " '" + contentView.text + "'"
+    inner class ViewHolder(private val binding: FragmentMovieItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        val view = binding.root
+        fun bindItem(item: PlaceholderItem) {
+            binding.movieItem = item
+            binding.executePendingBindings()
         }
     }
 }
