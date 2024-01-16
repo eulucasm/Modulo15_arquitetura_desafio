@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
@@ -18,17 +19,45 @@ class MovieFragment : Fragment(), MovieItemListener {
 
     private lateinit var adapter: MyItemRecyclerViewAdapter
     private val viewModel by navGraphViewModels<MovieViewModel>(R.id.movie_graph) { defaultViewModelProviderFactory }
+    private lateinit var binding : FragmentMovieItemBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val binding = FragmentMovieItemBinding.inflate(inflater)
+        binding = FragmentMovieItemBinding.inflate(inflater, container, false)
         val view = binding.root as RecyclerView
         adapter = MyItemRecyclerViewAdapter(this)
-        setupview(view)
-        initObservers()
+        initObservers(view)
+
         return view
+    }
+
+    private fun initObservers(view: RecyclerView) {
+        viewModel.viewDataStateLiveData.observe(viewLifecycleOwner, Observer { dataState ->
+            when (dataState) {
+                DataState.Loading -> showLoadingState()
+                DataState.Success -> showSuccessState(view)
+                DataState.Error -> showErrorState()
+            }
+        })
+
+        viewModel.navigationToMovieDetailsLiveData.observe(viewLifecycleOwner, Observer {
+            val action = MovieFragmentDirections.actionMovieFragmentToMovieDetailFragment()
+            findNavController().navigate(action)
+        })
+    }
+
+    private fun showLoadingState() {
+        binding.progressbar.visibility = View.VISIBLE
+    }
+
+    private fun showSuccessState(view: RecyclerView) {
+        setupview(view)
+        binding.progressbar.visibility = View.GONE
+    }
+    private fun showErrorState() {
+        Toast.makeText(context, "Erro na captura dos dados", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupview(view: RecyclerView) {
@@ -38,16 +67,7 @@ class MovieFragment : Fragment(), MovieItemListener {
         }
     }
 
-    private fun initObservers() {
-        viewModel.movieListLiveData.observe(viewLifecycleOwner, Observer {
-            adapter.updateData(it)
-        })
 
-        viewModel.navigationToMovieDetailsLiveData.observe(viewLifecycleOwner, Observer {
-            val action = MovieFragmentDirections.actionMovieFragmentToMovieDetailFragment()
-            findNavController().navigate(action)
-        })
-    }
 
     override fun onItemSelected(position: Int) {
         viewModel.onMovieSelected(position)

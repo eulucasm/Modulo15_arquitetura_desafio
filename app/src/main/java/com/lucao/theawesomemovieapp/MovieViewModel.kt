@@ -12,9 +12,12 @@ import kotlinx.coroutines.launch
 
 class MovieViewModel : ViewModel() {
     private val movieDetails = MovieData("Titulo", "Nota", "Descriçao")
+
+    //DETALHES
     private val _movieDetailsLiveData = MutableLiveData<MovieData>()
     val movieDetailsLiveData: LiveData<MovieData> get() = _movieDetailsLiveData
 
+    //LISTA
     private val _movieListLiveData = MutableLiveData<MutableList<PlaceholderItem>>()
     val movieListLiveData: LiveData<MutableList<PlaceholderItem>> get() = _movieListLiveData
 
@@ -50,7 +53,5 @@ class MovieViewModel : ViewModel() {
         _movieDetailsLiveData.postValue(movieDetails)
         _navigationToMovieDetailsLiveData.postValue(Unit)
     }
-
-
 
 }
